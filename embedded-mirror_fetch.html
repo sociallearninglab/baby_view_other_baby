@@ -384,8 +384,37 @@
                     if (song.paused) {
                         song.play().catch(e => console.log("Audio error:", e));
                     }
+
+                    const timerEl = document.getElementById('timer');
+                    const video = document.querySelector('video');
+                    
+                    function startTimer(duration) {
+                        let timeLeft = Math.round(duration);
+
+                        const updateTimer = () => {
+                            if (timeLeft >= 0 && timerEl.style.display === 'block') {
+                                const minutes = Math.floor(timeLeft / 60);
+                                const seconds = timeLeft % 60;
+                                timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                                timeLeft--;
+                                setTimeout(updateTimer, 1000);
+                            }
+                        };
+                        
+                        timerEl.style.display = 'block';
+                        updateTimer();
+                    }
+                    
+                    video.addEventListener('loadedmetadata', function() {
+                        startTimer(video.duration);
+                    });
+                },
+                on_finish: function() {
+                    document.getElementById('timer').style.display = 'none';
                 }
             };
+
+            
 
             const complete = {
                 type: jsPsychHtmlButtonResponse,
