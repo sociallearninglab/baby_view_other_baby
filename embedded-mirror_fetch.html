@@ -144,6 +144,7 @@
     </div>
     <audio id="chime" preload="auto" src="https://github.com/sociallearninglab/baby_view_other_baby/raw/refs/heads/main/mp3/chime.mp3"></audio>
     <audio id="song" preload="auto" src="https://github.com/sociallearninglab/baby_view_other_baby/raw/refs/heads/main/mp3/song.mp3" loop></audio>
+    <audio id="alldone" preload="auto" src="https://github.com/sociallearninglab/baby_view_other_baby/raw/refs/heads/main/mp3/alldone.mp3"></audio>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -411,6 +412,10 @@
                 },
                 on_finish: function() {
                     document.getElementById('timer').style.display = 'none';
+                    const song = document.getElementById('song');
+                    song.pause();
+                    const alldone = document.getElementById('alldone');
+                    alldone.play().catch(e => console.log("Audio error:", e));
                 }
             };
 
