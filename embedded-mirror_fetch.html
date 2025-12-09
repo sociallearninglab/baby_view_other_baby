@@ -256,6 +256,7 @@
                 choices: [],
                 trial_duration: 180000,
                 on_load: function(data) {
+                    console.log("Mirror trial (SELF) started");
                     const escapeHandler = function(e) {
                         if (e.key === 'e' || e.key === 'E') {
                             e.preventDefault();
@@ -264,7 +265,7 @@
                     };
                     document.addEventListener('keydown', escapeHandler);
                     window.mirrorEscapeHandler = escapeHandler;
-                    
+
                     const timerEl = document.getElementById('timer');
                     timerEl.style.display = 'block';
 
@@ -272,6 +273,7 @@
                     song.currentTime = 0;
                     song.loop = true;
                     song.play().catch(e => console.log("Audio error:", e));
+                    console.log("Mirror trial: Song started playing");
 
                     let trialEnded = false;
                     
@@ -334,6 +336,7 @@
                     }
 
                     function startTimer() {
+                        console.log("Mirror trial: Starting 3-minute timer");
                         let timeLeft = 180;
                         const updateTimer = () => {
                             const minutes = Math.floor(timeLeft / 60);
@@ -343,6 +346,7 @@
                                 timeLeft--;
                                 setTimeout(updateTimer, 1000);
                             } else if (!trialEnded) {
+                                console.log("Mirror trial: Timer reached 0, ending trial");
                                 trialEnded = true;
                                 if (window.webcamStream) {
                                     window.webcamStream.getTracks().forEach(track => track.stop());
@@ -355,13 +359,20 @@
                     }
                 },
                 on_finish: function() {
+                    console.log("Mirror trial (SELF) finished");
                     if (window.mirrorEscapeHandler) {
                         document.removeEventListener('keydown', window.mirrorEscapeHandler);
                     }
                     document.getElementById('timer').style.display = 'none';
+                    const song = document.getElementById('song');
+                    song.pause();
                     if (window.webcamStream) {
                         window.webcamStream.getTracks().forEach(track => track.stop());
                     }
+                    // Play all done audio after SELF mirror trial
+                    const alldone = document.getElementById('alldone');
+                    alldone.play().catch(e => console.log("Audio error:", e));
+                    console.log("Playing all_done.mp3 after mirror trial");
                 }
             };
             
@@ -380,6 +391,7 @@
                 autoplay: true,
                 trial_ends_after_video: true,
                 on_load: function() {
+                    console.log("Video trial started");
                     document.querySelector('video').muted = true;
                     const song = document.getElementById('song');
                     if (song.paused) {
@@ -388,34 +400,66 @@
 
                     const timerEl = document.getElementById('timer');
                     const video = document.querySelector('video');
-                    
-                    function startTimer(duration) {
-                        let timeLeft = Math.round(duration);
+
+                    console.log("Video element found:", !!video);
+
+                    function startTimer() {
+                        console.log("Starting video timer");
+                        let elapsed = 0;
 
                         const updateTimer = () => {
-                            if (timeLeft >= 0 && timerEl.style.display === 'block') {
-                                const minutes = Math.floor(timeLeft / 60);
-                                const seconds = timeLeft % 60;
+                            if (timerEl.style.display === 'block' && !video.ended) {
+                                const minutes = Math.floor(elapsed / 60);
+                                const seconds = elapsed % 60;
                                 timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                                timeLeft--;
+                                elapsed++;
                                 setTimeout(updateTimer, 1000);
                             }
                         };
-                        
+
                         timerEl.style.display = 'block';
                         updateTimer();
                     }
-                    
+
                     video.addEventListener('loadedmetadata', function() {
-                        startTimer(video.duration);
+                        console.log("Video metadata loaded. Duration:", video.duration, "seconds");
+                        console.log("Video metadata - readyState:", video.readyState);
+                    });
+
+                    video.addEventListener('loadeddata', function() {
+                        console.log("Video data loaded, ready to play");
+                    });
+
+                    video.addEventListener('canplay', function() {
+                        console.log("Video can start playing");
+                        startTimer();
+                    });
+
+                    video.addEventListener('play', function() {
+                        console.log("Video started playing at time:", video.currentTime);
+                    });
+
+                    video.addEventListener('timeupdate', function() {
+                        // Log every 30 seconds to track progress
+                        if (Math.floor(video.currentTime) % 30 === 0 && Math.floor(video.currentTime) > 0) {
+                            console.log("Video progress:", video.currentTime, "/", video.duration);
+                        }
+                    });
+
+                    video.addEventListener('ended', function() {
+                        console.log("Video ended at time:", video.currentTime);
+                    });
+
+                    video.addEventListener('error', function(e) {
+                        console.error("Video error:", e);
+                        console.error("Video error code:", video.error);
                     });
                 },
                 on_finish: function() {
+                    console.log("Video trial finished");
                     document.getElementById('timer').style.display = 'none';
                     const song = document.getElementById('song');
                     song.pause();
-                    const alldone = document.getElementById('alldone');
-                    alldone.play().catch(e => console.log("Audio error:", e));
                 }
             };
 
@@ -430,7 +474,9 @@
                     </div>
                 `,
                 choices: ['Close Window'],
-                button_html: '<button class="jspsych-btn" style="font-size: 24px; padding: 15px 30px; background-color: #4CAF50; color: white;">%choice%</button>',
+                button_html: function(choice) {
+                    return '<button class="jspsych-btn" style="font-size: 24px; padding: 15px 30px; background-color: #4CAF50; color: white;">' + choice + '</button>';
+                },
                 on_finish: function() {
                     const song = document.getElementById('song');
                     song.pause();
