@@ -401,14 +401,15 @@
 
                     function startTimer() {
                         console.log("Starting video timer");
-                        let elapsed = 0;
+                        const videoDuration = Math.floor(video.duration);
+                        let timeLeft = videoDuration;
 
                         const updateTimer = () => {
-                            if (timerEl.style.display === 'block' && !video.ended) {
-                                const minutes = Math.floor(elapsed / 60);
-                                const seconds = elapsed % 60;
+                            if (timerEl.style.display === 'block' && !video.ended && timeLeft >= 0) {
+                                const minutes = Math.floor(timeLeft / 60);
+                                const seconds = timeLeft % 60;
                                 timerEl.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                                elapsed++;
+                                timeLeft--;
                                 setTimeout(updateTimer, 1000);
                             }
                         };
