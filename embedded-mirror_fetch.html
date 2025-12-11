@@ -205,7 +205,7 @@
                         requestCameraAccess().then(function(success) {
                             console.log("Camera permission obtained:", success);
                         });
-                    }, 5000);
+                    }, 4000);
                 },
                 on_finish: function() {
                     enterFullscreen();
@@ -369,10 +369,6 @@
                     if (window.webcamStream) {
                         window.webcamStream.getTracks().forEach(track => track.stop());
                     }
-                    // Play all done audio after SELF mirror trial
-                    const alldone = document.getElementById('alldone');
-                    alldone.play().catch(e => console.log("Audio error:", e));
-                    console.log("Playing all_done.mp3 after mirror trial");
                 }
             };
             
@@ -477,10 +473,14 @@
                 button_html: function(choice) {
                     return '<button class="jspsych-btn" style="font-size: 24px; padding: 15px 30px; background-color: #4CAF50; color: white;">' + choice + '</button>';
                 },
+                on_load: function() {
+                    const alldone = document.getElementById('alldone');
+                    alldone.play().catch(e => console.log("Audio error:", e));
+                    console.log("Playing all_done.mp3 on complete screen");
+                },
                 on_finish: function() {
                     const song = document.getElementById('song');
                     song.pause();
-                    window.close();
                 }
             };
 
@@ -507,3 +507,6 @@
     </script>
 </body>
 </html>
+
+
+// let's specify duration for complete trial
